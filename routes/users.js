@@ -5,6 +5,9 @@ var crypto = require('crypto');
 var path = require('path');
 var multer  = require('multer');
 
+var passport = require('passport');
+var localStrategy = require('passport-local').Strategy;
+
 var User = require('../models/user');
 
 var storage = multer.diskStorage({
@@ -20,6 +23,16 @@ var storage = multer.diskStorage({
 });
 
 var upload = multer({ storage: storage });
+
+passport.serializeUser(function(user, done) {
+    done(null, user.id);
+});
+
+passport.deserializeUser(function(id, done) {
+    User.getUserById(id, function(err, user) {
+        done(err, user);
+    });
+});
 
 router.get('/register', function(req, res, next) {
   res.render('register', { title: 'Register' });
@@ -84,5 +97,40 @@ router.post('/register', upload.single('profileimage'), function(req, res, next)
   }
 
 });
+
+passport.use(new localStrategy(
+    function(username, password, done) {
+        console.log("local authentication!");
+
+        User.getUserByUsername(username, function(err, user){
+            if (err) throw err;
+
+            if (!user) {
+                console.log("Unknown user");
+                return done(null, false, {message: 'Unknown user'});
+            }
+
+            User.comparePassword(password, user.password, function(err, isMatch) {
+                if (err) throw err;
+                if (isMatch) {
+                    return done(null, user);
+                } else {
+                    console.log("Invalid password!")
+                    return done(null, false, {message: 'Invalid password'});
+                }
+            });
+        });
+    }
+));
+
+
+router.post('/login',
+    passport.authenticate('local', {failureRedirect: '/users/login', failureFlash: 'Invalid username or password'}),
+    function(req, res, next) {
+        console.log("Authentication successful!");
+        req.flash('success', 'You are now logged in.');
+        res.redirect('/');
+    }
+);
 
 module.exports = router;
