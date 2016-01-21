@@ -11,7 +11,6 @@ var expressMessages = require('express-messages');
 var passport = require('passport');
 var localStrategy = require('passport-local').Strategy;
 var bodyParser = require('body-parser');
-var multer = require('multer');
 var flash = require('connect-flash');
 
 
@@ -29,26 +28,11 @@ var app = express();
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
-// Handle file uploads
-// app.use(multer({dest: './uploads'}));
-
 // uncomment after placing your favicon in /public
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
-
-// Handle Express sessions
-app.use(session({
-  secret: 'secret',
-  saveUninitialized: true,
-  resave: true
-}));
-
-
-// Passport
-app.use(passport.initialize());
-app.use(passport.session());
 
 // Validator
 app.use(expressValidator({
@@ -67,6 +51,18 @@ app.use(expressValidator({
     };
   }
 }));
+
+// Handle Express sessions
+app.use(session({
+  secret: 'secret',
+  saveUninitialized: true,
+  resave: true
+}));
+
+
+// Passport
+app.use(passport.initialize());
+app.use(passport.session());
 
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
