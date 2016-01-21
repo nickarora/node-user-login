@@ -10,6 +10,9 @@ var localStrategy = require('passport-local').Strategy;
 
 var User = require('../models/user');
 
+
+// Initialization work we are doing for image file uploads using multer
+
 var storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, './uploads')
@@ -24,6 +27,9 @@ var storage = multer.diskStorage({
 
 var upload = multer({ storage: storage });
 
+
+// serialization is for session (saving current user and reloading user on subsequent sessions)
+
 passport.serializeUser(function(user, done) {
     done(null, user.id);
 });
@@ -34,6 +40,9 @@ passport.deserializeUser(function(id, done) {
     });
 });
 
+
+// GET requests
+
 router.get('/register', function(req, res, next) {
   res.render('register', { title: 'Register' });
 });
@@ -41,6 +50,9 @@ router.get('/register', function(req, res, next) {
 router.get('/login', function(req, res, next) {
   res.render('Login', { title: 'Login' });
 });
+
+
+// Registration Post request.  Validates form input then creates a new user in the database.
 
 router.post('/register', upload.single('profileimage'), function(req, res, next) {
 
@@ -98,10 +110,11 @@ router.post('/register', upload.single('profileimage'), function(req, res, next)
 
 });
 
+
+// Local Authentication
+
 passport.use(new localStrategy(
     function(username, password, done) {
-        console.log("local authentication!");
-
         User.getUserByUsername(username, function(err, user){
             if (err) throw err;
 
@@ -123,6 +136,8 @@ passport.use(new localStrategy(
     }
 ));
 
+
+// POST request for logins.  Relies on local authentication to make sure we only login the right user!
 
 router.post('/login',
     passport.authenticate('local', {failureRedirect: '/users/login', failureFlash: 'Invalid username or password'}),
