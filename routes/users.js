@@ -5,6 +5,8 @@ var crypto = require('crypto');
 var path = require('path');
 var multer  = require('multer');
 
+var User = require('../models/user');
+
 var storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, './uploads')
@@ -62,19 +64,19 @@ router.post('/register', upload.single('profileimage'), function(req, res, next)
       password2: password2
     });
   } else {
-    //var newUser = new User({
-    //  name: name,
-    //  email: email,
-    //  username: username,
-    //  password: password,
-    //  profileImage: profileImageName
-    //});
+    var newUser = new User({
+      name: name,
+      email: email,
+      username: username,
+      password: password,
+      profileImage: profileImageName
+    });
 
-    // create user
-    //User.createUser(newUser, function(err, user) {
-    //  if (err) throw err;
-    //  console.log(user);
-    //});
+     //create user
+    User.createUser(newUser, function(err, user) {
+      if (err) throw err;
+      console.log(user);
+    });
 
     req.flash('success', 'You are now registered and may log in.');
     res.location('/');
